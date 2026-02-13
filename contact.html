@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تواصل معنا</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    
+    <header>
+        <div class="logo">🌐 موقعي</div>
+        <nav>
+            <a href="index.html">الرئيسية</a>
+            <a href="about.html">عن الموقع</a>
+            <a href="contact.html">تواصل</a>
+        </nav>
+    </header>
+    
+    <main class="container">
+        <div class="page-header">
+            <h1>📬 تواصل معنا</h1>
+        </div>
+        
+        <div class="contact-grid">
+            
+            <div class="contact-form">
+                <h2>أرسل لنا رسالة</h2>
+                <form onsubmit="sendMessage(event)">
+                    <div class="form-group">
+                        <label>الاسم:</label>
+                        <input type="text" id="name" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>البريد الإلكتروني:</label>
+                        <input type="email" id="email" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>الرسالة:</label>
+                        <textarea id="message" rows="5" required></textarea>
+                    </div>
+                    
+                    <button type="submit" class="btn">إرسال</button>
+                </form>
+            </div>
+            
+            <div class="contact-info">
+                <h2>معلومات الاتصال</h2>
+                
+                <div class="info-item">
+                    <div class="info-icon">📧</div>
+                    <div>
+                        <h3>البريد الإلكتروني</h3>
+                        <p>example@onion.site</p>
+                    </div>
+                </div>
+                
+                <div class="info-item">
+                    <div class="info-icon">🌐</div>
+                    <div>
+                        <h3>الموقع</h3>
+                        <p>موقع تجريبي على Tor</p>
+                    </div>
+                </div>
+                
+                <div class="info-item">
+                    <div class="info-icon">⏰</div>
+                    <div>
+                        <h3>أوقات العمل</h3>
+                        <p>24/7 - متاح دائماً</p>
+                    </div>
+                </div>
+                
+                <div class="social-links">
+                    <h3>تابعنا</h3>
+                    <div class="social-icons">
+                        <a href="#" class="social-icon">📘</a>
+                        <a href="#" class="social-icon">🐦</a>
+                        <a href="#" class="social-icon">📷</a>
+                        <a href="#" class="social-icon">💼</a>
+                    </div>
+                </div>
+                
+            </div>
+            
+        </div>
+        
+    </main>
+    
+    <footer>
+        <p>© 2026 - موقعي التجريبي | جميع الحقوق محفوظة</p>
+    </footer>
+    
+    <script src="script.js"></script>
+    
+</body>
+</html>

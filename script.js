@@ -3,9 +3,19 @@
 // ======================================
 
 const AI_CONFIG = {
-    chatModel: 'claude-sonnet-4-20250514',
-    maxTokens: 4000,
-    endpoint: 'https://api.anthropic.com/v1/messages'
+    // 🔑 اختر الخدمة:
+    provider: 'gemini', // 'gemini' أو 'claude' أو 'openai'
+    
+    // Gemini API (مجاني!) - احصل عليه من: https://makersuite.google.com/app/apikey
+    geminiKey: '', // ← ضع مفتاح Gemini هنا (مجاني!)
+    
+    // Claude API (مدفوع) - احصل عليه من: https://console.anthropic.com/
+    claudeKey: '', // ← أو ضع مفتاح Claude هنا
+    
+    // OpenAI API (مدفوع) - احصل عليه من: https://platform.openai.com/
+    openaiKey: '', // ← أو ضع مفتاح OpenAI هنا
+    
+    maxTokens: 4000
 };
 
 // ======================================
@@ -45,6 +55,27 @@ async function sendMessage() {
         return;
     }
     
+    // التحقق من وجود API Key
+    const apiKey = getApiKey();
+    if (!apiKey) {
+        addMessage('ai', `⚠️ لتفعيل الدردشة، احصل على مفتاح API مجاني:
+
+🆓 **Gemini (مجاني تماماً!):**
+   https://makersuite.google.com/app/apikey
+   
+💰 **Claude (مدفوع - الأفضل):**
+   https://console.anthropic.com/
+   
+💰 **OpenAI (مدفوع):**
+   https://platform.openai.com/
+
+بعد الحصول على المفتاح:
+1. افتح ملف script.js
+2. أضف المفتاح في السطر المناسب
+3. ابدأ الدردشة! 🚀`);
+        return;
+    }
+    
     // عرض رسالة المستخدم
     if (message) {
         addMessage('user', message, currentImage);
@@ -75,15 +106,89 @@ async function sendMessage() {
         }
     } catch (error) {
         removeTypingIndicator();
-        addMessage('ai', 'عذراً، حدث خطأ في الاتصال. يرجى المحاولة مرة أخرى.');
+        addMessage('ai', 'عذراً، حدث خطأ في الاتصال. يرجى التحقق من مفتاح API.');
         console.error('خطأ في الاتصال بـ AI:', error);
+    }
+}
+
+// الحصول على API Key حسب المزود
+function getApiKey() {
+    switch(AI_CONFIG.provider) {
+        case 'gemini':
+            return AI_CONFIG.geminiKey;
+        case 'claude':
+            return AI_CONFIG.claudeKey;
+        case 'openai':
+            return AI_CONFIG.openaiKey;
+        default:
+            return AI_CONFIG.geminiKey || AI_CONFIG.claudeKey || AI_CONFIG.openaiKey;
     }
 }
 
 // استدعاء الذكاء الاصطناعي
 async function callAI(userMessage, image = null) {
+    const provider = AI_CONFIG.provider;
+    
     try {
-        // بناء محتوى الرسالة
+        switch(provider) {
+            case 'gemini':
+                return await callGemini(userMessage, image);
+            case 'claude':
+                return await callClaude(userMessage, image);
+            case 'openai':
+                return await callOpenAI(userMessage, image);
+            default:
+                return await callGemini(userMessage, image);
+        }
+    } catch (error) {
+        console.error('خطأ في callAI:', error);
+        return 'عذراً، لم أتمكن من معالجة طلبك. يرجى التحقق من مفتاح API.';
+    }
+}
+
+// استدعاء Gemini (مجاني!)
+async function callGemini(userMessage, image = null) {
+    try {
+        let content = [];
+        
+        if (image) {
+            content.push({
+                inlineData: {
+                    mimeType: image.type,
+                    data: image.data
+                }
+            });
+            imageCounter++;
+            updateStats();
+        }
+        
+        if (userMessage) {
+            content.push({ text: userMessage });
+        }
+        
+        const response = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-vision:generateContent?key=${AI_CONFIG.geminiKey}`,
+            {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{ parts: content }]
+                })
+            }
+        );
+        
+        const data = await response.json();
+        return data.candidates[0].content.parts[0].text;
+        
+    } catch (error) {
+        console.error('خطأ Gemini:', error);
+        throw error;
+    }
+}
+
+// استدعاء Claude
+async function callClaude(userMessage, image = null) {
+    try {
         let messageContent = [];
         
         if (image) {
@@ -106,42 +211,31 @@ async function callAI(userMessage, image = null) {
             });
         }
         
-        // إضافة الرسالة لسجل المحادثة
         conversationHistory.push({
             role: 'user',
             content: messageContent.length === 1 ? messageContent[0].text : messageContent
         });
         
-        // استدعاء API
-        const response = await fetch(AI_CONFIG.endpoint, {
+        const response = await fetch('https://api.anthropic.com/v1/messages', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'x-api-key': AI_CONFIG.claudeKey,
                 'anthropic-version': '2023-06-01'
             },
             body: JSON.stringify({
-                model: AI_CONFIG.chatModel,
+                model: 'claude-sonnet-4-20250514',
                 max_tokens: AI_CONFIG.maxTokens,
                 messages: conversationHistory
             })
         });
         
-        if (!response.ok) {
-            throw new Error(`خطأ في API: ${response.status}`);
-        }
-        
         const data = await response.json();
+        const aiResponse = data.content
+            .filter(item => item.type === 'text')
+            .map(item => item.text)
+            .join('\n');
         
-        // استخراج الرد
-        let aiResponse = '';
-        if (data.content && data.content.length > 0) {
-            aiResponse = data.content
-                .filter(item => item.type === 'text')
-                .map(item => item.text)
-                .join('\n');
-        }
-        
-        // إضافة رد AI لسجل المحادثة
         conversationHistory.push({
             role: 'assistant',
             content: aiResponse
@@ -150,8 +244,55 @@ async function callAI(userMessage, image = null) {
         return aiResponse;
         
     } catch (error) {
-        console.error('خطأ في callAI:', error);
-        return 'عذراً، لم أتمكن من معالجة طلبك. يرجى التأكد من إضافة مفتاح API صالح.';
+        console.error('خطأ Claude:', error);
+        throw error;
+    }
+}
+
+// استدعاء OpenAI
+async function callOpenAI(userMessage, image = null) {
+    try {
+        let messages = [];
+        
+        if (image) {
+            messages.push({
+                role: 'user',
+                content: [
+                    { type: 'text', text: userMessage },
+                    {
+                        type: 'image_url',
+                        image_url: { url: `data:${image.type};base64,${image.data}` }
+                    }
+                ]
+            });
+            imageCounter++;
+            updateStats();
+        } else {
+            messages.push({
+                role: 'user',
+                content: userMessage
+            });
+        }
+        
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${AI_CONFIG.openaiKey}`
+            },
+            body: JSON.stringify({
+                model: 'gpt-4-vision-preview',
+                messages: messages,
+                max_tokens: AI_CONFIG.maxTokens
+            })
+        });
+        
+        const data = await response.json();
+        return data.choices[0].message.content;
+        
+    } catch (error) {
+        console.error('خطأ OpenAI:', error);
+        throw error;
     }
 }
 
@@ -162,14 +303,13 @@ async function generateImage(prompt) {
     try {
         removeTypingIndicator();
         
-        // رسالة توضيحية
-        const message = `لإنشاء الصور، ستحتاج إلى ربط API لتوليد الصور مثل:
+        const message = `لإنشاء الصور، ستحتاج إلى:
         
-• DALL-E من OpenAI
-• Stable Diffusion
-• Midjourney API
+• DALL-E من OpenAI (مدفوع)
+• Stable Diffusion (مجاني مع استضافة)
+• Midjourney API (مدفوع)
 
-يمكنك إضافة المفتاح في الكود وسأقوم بإنشاء الصورة من الوصف: "${prompt}"`;
+الوصف المطلوب: "${prompt}"`;
         
         addMessage('ai', message);
         
@@ -184,7 +324,6 @@ async function generateImage(prompt) {
 // وظائف إدارة الرسائل
 // ======================================
 
-// إضافة رسالة للدردشة
 function addMessage(sender, text, image = null) {
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${sender}`;
@@ -192,7 +331,6 @@ function addMessage(sender, text, image = null) {
     const contentDiv = document.createElement('div');
     contentDiv.className = 'message-content';
     
-    // إضافة الصورة إن وجدت
     if (image && sender === 'user') {
         const img = document.createElement('img');
         img.src = `data:${image.type};base64,${image.data}`;
@@ -201,7 +339,6 @@ function addMessage(sender, text, image = null) {
         contentDiv.appendChild(img);
     }
     
-    // إضافة النص
     if (text) {
         const textDiv = document.createElement('div');
         textDiv.className = 'message-text';
@@ -209,7 +346,6 @@ function addMessage(sender, text, image = null) {
         contentDiv.appendChild(textDiv);
     }
     
-    // إضافة الوقت
     const timeSpan = document.createElement('span');
     timeSpan.className = 'message-time';
     timeSpan.textContent = getCurrentTime();
@@ -217,12 +353,9 @@ function addMessage(sender, text, image = null) {
     
     messageDiv.appendChild(contentDiv);
     chatMessages.appendChild(messageDiv);
-    
-    // التمرير للأسفل
     scrollToBottom();
 }
 
-// عرض مؤشر الكتابة
 function showTypingIndicator() {
     const typingDiv = document.createElement('div');
     typingDiv.className = 'message ai';
@@ -241,32 +374,24 @@ function showTypingIndicator() {
     scrollToBottom();
 }
 
-// إزالة مؤشر الكتابة
 function removeTypingIndicator() {
     const indicator = document.getElementById('typingIndicator');
-    if (indicator) {
-        indicator.remove();
-    }
+    if (indicator) indicator.remove();
 }
 
 // ======================================
 // وظائف إدارة الصور
 // ======================================
 
-// تحويل الملف لـ base64
 function fileToBase64(file) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
-        reader.onload = () => {
-            const base64 = reader.result.split(',')[1];
-            resolve(base64);
-        };
+        reader.onload = () => resolve(reader.result.split(',')[1]);
         reader.onerror = reject;
         reader.readAsDataURL(file);
     });
 }
 
-// مسح معاينة الصورة
 function clearImagePreview() {
     currentImage = null;
     if (imagePreview) imagePreview.style.display = 'none';
@@ -278,30 +403,20 @@ function clearImagePreview() {
 // وظائف مساعدة
 // ======================================
 
-// التمرير لأسفل المحادثة
 function scrollToBottom() {
-    if (chatMessages) {
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-    }
+    if (chatMessages) chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
-// الحصول على الوقت الحالي
 function getCurrentTime() {
-    const now = new Date();
-    return now.toLocaleTimeString('ar-SA', { 
+    return new Date().toLocaleTimeString('ar-SA', { 
         hour: '2-digit', 
         minute: '2-digit' 
     });
 }
 
-// تحديث الإحصائيات
 function updateStats() {
-    if (messageCount) {
-        messageCount.textContent = messageCounter;
-    }
-    if (imageCount) {
-        imageCount.textContent = imageCounter;
-    }
+    if (messageCount) messageCount.textContent = messageCounter;
+    if (imageCount) imageCount.textContent = imageCounter;
 }
 
 // ======================================
@@ -309,7 +424,6 @@ function updateStats() {
 // ======================================
 
 document.addEventListener('DOMContentLoaded', () => {
-    // تهيئة عناصر DOM
     chatMessages = document.getElementById('chatMessages');
     messageInput = document.getElementById('messageInput');
     sendBtn = document.getElementById('sendBtn');
@@ -322,13 +436,9 @@ document.addEventListener('DOMContentLoaded', () => {
     messageCount = document.getElementById('messageCount');
     imageCount = document.getElementById('imageCount');
     
-    // إضافة معالجات الأحداث
-    if (sendBtn) {
-        sendBtn.addEventListener('click', sendMessage);
-    }
+    if (sendBtn) sendBtn.addEventListener('click', sendMessage);
     
     if (messageInput) {
-        // Enter للإرسال
         messageInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
@@ -336,7 +446,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
         
-        // تعديل حجم textarea تلقائياً
         messageInput.addEventListener('input', function() {
             this.style.height = 'auto';
             this.style.height = Math.min(this.scrollHeight, 150) + 'px';
@@ -382,10 +491,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             try {
                 const base64 = await fileToBase64(file);
-                currentImage = {
-                    type: file.type,
-                    data: base64
-                };
+                currentImage = { type: file.type, data: base64 };
                 
                 if (previewImg) previewImg.src = `data:${file.type};base64,${base64}`;
                 if (imagePreview) imagePreview.style.display = 'block';
@@ -397,28 +503,21 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
-    // تحديث الإحصائيات
     updateStats();
     
     console.log('🤖 دردشة الذكاء الاصطناعي جاهزة!');
-    console.log('💡 لاستخدام الذكاء الاصطناعي، أضف مفتاح API في AI_CONFIG');
+    console.log('📍 المزود الحالي:', AI_CONFIG.provider);
+    
+    const apiKey = getApiKey();
+    if (!apiKey) {
+        console.warn('⚠️ يرجى إضافة مفتاح API');
+    } else {
+        console.log('✅ مفتاح API موجود - الدردشة جاهزة!');
+    }
 });
 
-// ======================================
-// معالجة الأخطاء العامة
-// ======================================
-
-window.addEventListener('error', (e) => {
-    console.error('خطأ عام:', e.error);
-});
-
-window.addEventListener('unhandledrejection', (e) => {
-    console.error('Promise مرفوض:', e.reason);
-});
-
-// ======================================
-// تصدير للاستخدام الخارجي
-// ======================================
+window.addEventListener('error', (e) => console.error('خطأ عام:', e.error));
+window.addEventListener('unhandledrejection', (e) => console.error('Promise مرفوض:', e.reason));
 
 window.chatApp = {
     sendMessage: () => sendMessage(),

@@ -197,6 +197,8 @@ body {
     overflow-y: auto;
     padding: 24px;
     scroll-behavior: smooth;
+    display: flex;
+    flex-direction: column;
 }
 
 .chat-messages::-webkit-scrollbar {
@@ -219,9 +221,10 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    min-height: 60vh;
+    justify-content: flex-start;
+    padding-top: 60px;
     text-align: center;
+    width: 100%;
 }
 
 .welcome-logo {

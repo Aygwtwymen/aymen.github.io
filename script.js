@@ -1,53 +1,135 @@
-// ======================================
-// إعدادات الذكاء الاصطناعي
-// ======================================
-
-const AI_CONFIG = {
-    // 🔑 اختر الخدمة:
-    provider: 'gemini', // 'gemini' أو 'claude' أو 'openai'
-    
-    // Gemini API (مجاني!) - احصل عليه من: https://makersuite.google.com/app/apikey
-    geminiKey: '', // ← ضع مفتاح Gemini هنا (مجاني!)
-    
-    // Claude API (مدفوع) - احصل عليه من: https://console.anthropic.com/
-    claudeKey: '', // ← أو ضع مفتاح Claude هنا
-    
-    // OpenAI API (مدفوع) - احصل عليه من: https://platform.openai.com/
-    openaiKey: '', // ← أو ضع مفتاح OpenAI هنا
-    
-    maxTokens: 4000
-};
-
-// ======================================
-// المتغيرات العامة
-// ======================================
-
-let conversationHistory = [];
-let currentImage = null;
-let messageCounter = 0;
-let imageCounter = 0;
-
-// ======================================
-// عناصر DOM
-// ======================================
-
+// ============================================
+// DOM Elements
+// ============================================
 let chatMessages;
 let messageInput;
 let sendBtn;
+let attachBtn;
 let imageInput;
-let imageAnalyzeBtn;
-let imageGenerateBtn;
 let imagePreview;
 let previewImg;
 let removeImageBtn;
-let messageCount;
-let imageCount;
+let newChatBtn;
+let chatHistory;
 
-// ======================================
-// وظائف الإرسال والاستقبال
-// ======================================
+// ============================================
+// State
+// ============================================
+let currentImage = null;
+let conversationHistory = [];
+let chatSessions = [];
+let currentSessionId = null;
 
-// إرسال رسالة
+// ============================================
+// AI Response Engine (يعمل بدون API!)
+// ============================================
+const AI_RESPONSES = {
+    greetings: [
+        "مرحباً! كيف يمكنني مساعدتك اليوم؟",
+        "أهلاً بك! سعيد بالتحدث معك.",
+        "مرحباً! أنا هنا لمساعدتك."
+    ],
+    
+    help: [
+        "يمكنني مساعدتك في:\n• الإجابة على الأسئلة\n• كتابة المحتوى\n• شرح المفاهيم\n• حل المشاكل\n• والمزيد!",
+        "أنا مساعد ذكاء اصطناعي يمكنه:\n- التحدث معك\n- الإجابة على استفساراتك\n- تقديم المعلومات\n- المساعدة في المهام المختلفة"
+    ],
+    
+    programming: [
+        "البرمجة مجال رائع! يمكنني مساعدتك في:\n• تعلم أساسيات البرمجة\n• شرح المفاهيم\n• حل المشاكل البرمجية\n• اقتراح مشاريع\n\nما الذي تريد معرفته تحديداً؟",
+        "للبدء في البرمجة، أنصحك بـ:\n1. اختيار لغة برمجة (مثل Python)\n2. تعلم الأساسيات\n3. ممارسة الكود يومياً\n4. بناء مشاريع صغيرة\n\nهل تريد المزيد من التفاصيل؟"
+    ],
+    
+    ai: [
+        "الذكاء الاصطناعي هو محاكاة الذكاء البشري بواسطة الآلات.\n\nيتضمن:\n• التعلم الآلي\n• معالجة اللغة الطبيعية\n• رؤية الكمبيوتر\n• الأنظمة الخبيرة\n\nهل تريد معرفة المزيد عن جانب معين؟",
+        "AI يغير العالم!\n\nالتطبيقات:\n- المساعدات الصوتية\n- السيارات ذاتية القيادة\n- التشخيص الطبي\n- الترجمة الآلية\n\nما الذي يثير اهتمامك؟"
+    ],
+    
+    story: [
+        "سأكتب لك قصة قصيرة:\n\nفي قرية صغيرة، كان هناك طفل يحلم بالنجوم. كل ليلة، كان يجلس على السطح ويحدق في السماء. لم يكن يعلم أن حلمه سيتحقق يوماً ما...\n\nأصبح ذلك الطفل أول رائد فضاء من قريته، مثبتاً أن الأحلام تتحقق بالإصرار والعمل الجاد.\n\nهل أعجبتك القصة؟",
+        "حسناً، إليك قصة ملهمة:\n\nكان هناك روبوت صغير يعيش في مصنع. كان يحلم بأن يكون مفيداً. في يوم من الأيام، أنقذ حياة عامل سقط من مكان مرتفع.\n\nأدرك الجميع أن الحجم لا يهم، المهم هو القلب الكبير والنية الصادقة.\n\nالعبرة: كل شخص لديه قيمة فريدة."
+    ],
+    
+    default: [
+        "هذا سؤال مثير للاهتمام! دعني أفكر فيه...\n\nبناءً على معرفتي، يمكنني أن أقول أن هذا الموضوع يتطلب فهماً عميقاً. هل يمكنك إعطائي المزيد من التفاصيل حتى أتمكن من مساعدتك بشكل أفضل؟",
+        "شكراً على سؤالك! هذا موضوع واسع ومهم.\n\nمن وجهة نظري، يجب النظر إلى الموضوع من زوايا متعددة. هل تريد معلومات محددة أم نظرة عامة؟",
+        "سؤال جيد! دعني أساعدك...\n\nهناك عدة جوانب لهذا الموضوع. يمكنني تقديم معلومات أو شرح أو مناقشة الموضوع معك. ما الذي تفضله؟"
+    ]
+};
+
+// ============================================
+// Smart Response Generator
+// ============================================
+function generateAIResponse(userMessage) {
+    const message = userMessage.toLowerCase();
+    
+    // تحليل النص واختيار الرد المناسب
+    if (/مرحب|هلا|السلام|أهلا|صباح|مساء/.test(message)) {
+        return getRandomResponse(AI_RESPONSES.greetings);
+    }
+    
+    if (/ساعد|مساعدة|help|تفعل/.test(message)) {
+        return getRandomResponse(AI_RESPONSES.help);
+    }
+    
+    if (/برمج|كود|بايثون|جافا|program|code/.test(message)) {
+        return getRandomResponse(AI_RESPONSES.programming);
+    }
+    
+    if (/ذكاء اصطناعي|ai|تعلم آلي|machine learning/.test(message)) {
+        return getRandomResponse(AI_RESPONSES.ai);
+    }
+    
+    if (/قصة|حكاية|story/.test(message)) {
+        return getRandomResponse(AI_RESPONSES.story);
+    }
+    
+    if (/كيف حالك|حالك|كيفك/.test(message)) {
+        return "أنا بخير، شكراً لسؤالك! 😊\nأنا مساعد AI جاهز دائماً لمساعدتك. كيف يمكنني مساعدتك اليوم؟";
+    }
+    
+    if (/شكرا|شكراً|thanks|thank you/.test(message)) {
+        return "العفو! سعيد بمساعدتك. 😊\nإذا كان لديك أي سؤال آخر، أنا هنا!";
+    }
+    
+    if (/من أنت|ما اسمك|who are you/.test(message)) {
+        return "أنا مساعد ذكاء اصطناعي تم تطويري لمساعدتك! 🤖\n\nيمكنني:\n• الإجابة على أسئلتك\n• كتابة المحتوى\n• شرح المفاهيم\n• المساعدة في البرمجة\n• والمزيد!\n\nكيف يمكنني مساعدتك؟";
+    }
+    
+    if (/وقت|تاريخ|date|time/.test(message)) {
+        const now = new Date();
+        return `الوقت الحالي: ${now.toLocaleTimeString('ar-SA')}\nالتاريخ: ${now.toLocaleDateString('ar-SA')}`;
+    }
+    
+    // ردود ذكية بناءً على طول الرسالة
+    if (message.length > 100) {
+        return "أرى أن لديك سؤال مفصل! دعني أحلله...\n\nبناءً على ما كتبته، أفهم أنك تبحث عن معلومات شاملة. للأسف، كوني نموذج تجريبي، قدراتي محدودة، لكنني سأحاول مساعدتك قدر الإمكان.\n\nما هو الجانب الأكثر أهمية الذي تريد التركيز عليه؟";
+    }
+    
+    // رد افتراضي ذكي
+    return getRandomResponse(AI_RESPONSES.default);
+}
+
+function getRandomResponse(responseArray) {
+    return responseArray[Math.floor(Math.random() * responseArray.length)];
+}
+
+// ============================================
+// Image Analysis (محاكاة)
+// ============================================
+function analyzeImage() {
+    const responses = [
+        "رائع! أرى صورة جميلة. 🖼️\n\nتظهر الصورة محتوى مثير للاهتمام. للأسف، قدراتي في تحليل الصور محدودة في هذا الإصدار، لكنني أستطيع رؤية أنها صورة واضحة وجيدة الجودة.\n\nهل تريد أن تخبرني عن الصورة؟",
+        "شكراً على مشاركة الصورة! 📸\n\nيمكنني رؤية أنك أرفقت صورة. في الإصدار الكامل، سأتمكن من تحليلها بالتفصيل، لكن حالياً يمكنني المساعدة بأسئلة نصية عنها.\n\nماذا تريد أن تعرف عن هذه الصورة؟",
+        "صورة رائعة! 🎨\n\nأستطيع رؤية أنك شاركت صورة معي. للحصول على تحليل متقدم للصور، ستحتاج النسخة المتصلة بـ API، لكن يمكنني مساعدتك بأسئلة حولها!\n\nصف لي ما في الصورة وسأساعدك."
+    ];
+    
+    return getRandomResponse(responses);
+}
+
+// ============================================
+// Message Functions
+// ============================================
 async function sendMessage() {
     const message = messageInput.value.trim();
     
@@ -55,274 +137,46 @@ async function sendMessage() {
         return;
     }
     
-    // التحقق من وجود API Key
-    const apiKey = getApiKey();
-    if (!apiKey) {
-        addMessage('ai', `⚠️ لتفعيل الدردشة، احصل على مفتاح API مجاني:
-
-🆓 **Gemini (مجاني تماماً!):**
-   https://makersuite.google.com/app/apikey
-   
-💰 **Claude (مدفوع - الأفضل):**
-   https://console.anthropic.com/
-   
-💰 **OpenAI (مدفوع):**
-   https://platform.openai.com/
-
-بعد الحصول على المفتاح:
-1. افتح ملف script.js
-2. أضف المفتاح في السطر المناسب
-3. ابدأ الدردشة! 🚀`);
-        return;
+    // Hide welcome screen
+    const welcomeScreen = document.querySelector('.welcome-screen');
+    if (welcomeScreen) {
+        welcomeScreen.style.display = 'none';
     }
     
-    // عرض رسالة المستخدم
-    if (message) {
+    // Add user message
+    if (message || currentImage) {
         addMessage('user', message, currentImage);
-        messageCounter++;
-        updateStats();
+        conversationHistory.push({ role: 'user', content: message });
     }
     
-    // مسح الإدخال
+    // Clear input
     messageInput.value = '';
     messageInput.style.height = 'auto';
     
-    // حفظ الصورة المؤقتة
-    const imageToSend = currentImage;
+    const imageToAnalyze = currentImage;
     clearImagePreview();
     
-    // عرض مؤشر الكتابة
+    // Show typing indicator
     showTypingIndicator();
     
-    // إرسال للـ AI
-    try {
-        const response = await callAI(message, imageToSend);
-        removeTypingIndicator();
-        
-        if (response) {
-            addMessage('ai', response);
-            messageCounter++;
-            updateStats();
-        }
-    } catch (error) {
-        removeTypingIndicator();
-        addMessage('ai', 'عذراً، حدث خطأ في الاتصال. يرجى التحقق من مفتاح API.');
-        console.error('خطأ في الاتصال بـ AI:', error);
-    }
-}
-
-// الحصول على API Key حسب المزود
-function getApiKey() {
-    switch(AI_CONFIG.provider) {
-        case 'gemini':
-            return AI_CONFIG.geminiKey;
-        case 'claude':
-            return AI_CONFIG.claudeKey;
-        case 'openai':
-            return AI_CONFIG.openaiKey;
-        default:
-            return AI_CONFIG.geminiKey || AI_CONFIG.claudeKey || AI_CONFIG.openaiKey;
-    }
-}
-
-// استدعاء الذكاء الاصطناعي
-async function callAI(userMessage, image = null) {
-    const provider = AI_CONFIG.provider;
+    // Simulate AI thinking
+    await sleep(1000 + Math.random() * 1500);
     
-    try {
-        switch(provider) {
-            case 'gemini':
-                return await callGemini(userMessage, image);
-            case 'claude':
-                return await callClaude(userMessage, image);
-            case 'openai':
-                return await callOpenAI(userMessage, image);
-            default:
-                return await callGemini(userMessage, image);
-        }
-    } catch (error) {
-        console.error('خطأ في callAI:', error);
-        return 'عذراً، لم أتمكن من معالجة طلبك. يرجى التحقق من مفتاح API.';
+    // Generate response
+    let aiResponse;
+    if (imageToAnalyze) {
+        aiResponse = analyzeImage();
+    } else {
+        aiResponse = generateAIResponse(message);
     }
-}
-
-// استدعاء Gemini (مجاني!)
-async function callGemini(userMessage, image = null) {
-    try {
-        let content = [];
-        
-        if (image) {
-            content.push({
-                inlineData: {
-                    mimeType: image.type,
-                    data: image.data
-                }
-            });
-            imageCounter++;
-            updateStats();
-        }
-        
-        if (userMessage) {
-            content.push({ text: userMessage });
-        }
-        
-        const response = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-vision:generateContent?key=${AI_CONFIG.geminiKey}`,
-            {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    contents: [{ parts: content }]
-                })
-            }
-        );
-        
-        const data = await response.json();
-        return data.candidates[0].content.parts[0].text;
-        
-    } catch (error) {
-        console.error('خطأ Gemini:', error);
-        throw error;
-    }
-}
-
-// استدعاء Claude
-async function callClaude(userMessage, image = null) {
-    try {
-        let messageContent = [];
-        
-        if (image) {
-            messageContent.push({
-                type: 'image',
-                source: {
-                    type: 'base64',
-                    media_type: image.type,
-                    data: image.data
-                }
-            });
-            imageCounter++;
-            updateStats();
-        }
-        
-        if (userMessage) {
-            messageContent.push({
-                type: 'text',
-                text: userMessage
-            });
-        }
-        
-        conversationHistory.push({
-            role: 'user',
-            content: messageContent.length === 1 ? messageContent[0].text : messageContent
-        });
-        
-        const response = await fetch('https://api.anthropic.com/v1/messages', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'x-api-key': AI_CONFIG.claudeKey,
-                'anthropic-version': '2023-06-01'
-            },
-            body: JSON.stringify({
-                model: 'claude-sonnet-4-20250514',
-                max_tokens: AI_CONFIG.maxTokens,
-                messages: conversationHistory
-            })
-        });
-        
-        const data = await response.json();
-        const aiResponse = data.content
-            .filter(item => item.type === 'text')
-            .map(item => item.text)
-            .join('\n');
-        
-        conversationHistory.push({
-            role: 'assistant',
-            content: aiResponse
-        });
-        
-        return aiResponse;
-        
-    } catch (error) {
-        console.error('خطأ Claude:', error);
-        throw error;
-    }
-}
-
-// استدعاء OpenAI
-async function callOpenAI(userMessage, image = null) {
-    try {
-        let messages = [];
-        
-        if (image) {
-            messages.push({
-                role: 'user',
-                content: [
-                    { type: 'text', text: userMessage },
-                    {
-                        type: 'image_url',
-                        image_url: { url: `data:${image.type};base64,${image.data}` }
-                    }
-                ]
-            });
-            imageCounter++;
-            updateStats();
-        } else {
-            messages.push({
-                role: 'user',
-                content: userMessage
-            });
-        }
-        
-        const response = await fetch('https://api.openai.com/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${AI_CONFIG.openaiKey}`
-            },
-            body: JSON.stringify({
-                model: 'gpt-4-vision-preview',
-                messages: messages,
-                max_tokens: AI_CONFIG.maxTokens
-            })
-        });
-        
-        const data = await response.json();
-        return data.choices[0].message.content;
-        
-    } catch (error) {
-        console.error('خطأ OpenAI:', error);
-        throw error;
-    }
-}
-
-// إنشاء صورة بالذكاء الاصطناعي
-async function generateImage(prompt) {
-    showTypingIndicator();
     
-    try {
-        removeTypingIndicator();
-        
-        const message = `لإنشاء الصور، ستحتاج إلى:
-        
-• DALL-E من OpenAI (مدفوع)
-• Stable Diffusion (مجاني مع استضافة)
-• Midjourney API (مدفوع)
-
-الوصف المطلوب: "${prompt}"`;
-        
-        addMessage('ai', message);
-        
-    } catch (error) {
-        removeTypingIndicator();
-        addMessage('ai', 'عذراً، حدث خطأ في إنشاء الصورة.');
-        console.error('خطأ في generateImage:', error);
-    }
+    removeTypingIndicator();
+    addMessage('ai', aiResponse);
+    conversationHistory.push({ role: 'ai', content: aiResponse });
+    
+    // Update chat history
+    updateChatHistory(message);
 }
-
-// ======================================
-// وظائف إدارة الرسائل
-// ======================================
 
 function addMessage(sender, text, image = null) {
     const messageDiv = document.createElement('div');
@@ -335,7 +189,6 @@ function addMessage(sender, text, image = null) {
         const img = document.createElement('img');
         img.src = `data:${image.type};base64,${image.data}`;
         img.className = 'message-image';
-        img.alt = 'صورة مرفقة';
         contentDiv.appendChild(img);
     }
     
@@ -345,11 +198,6 @@ function addMessage(sender, text, image = null) {
         textDiv.textContent = text;
         contentDiv.appendChild(textDiv);
     }
-    
-    const timeSpan = document.createElement('span');
-    timeSpan.className = 'message-time';
-    timeSpan.textContent = getCurrentTime();
-    contentDiv.appendChild(timeSpan);
     
     messageDiv.appendChild(contentDiv);
     chatMessages.appendChild(messageDiv);
@@ -379,10 +227,9 @@ function removeTypingIndicator() {
     if (indicator) indicator.remove();
 }
 
-// ======================================
-// وظائف إدارة الصور
-// ======================================
-
+// ============================================
+// Image Handling
+// ============================================
 function fileToBase64(file) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -399,44 +246,132 @@ function clearImagePreview() {
     if (imageInput) imageInput.value = '';
 }
 
-// ======================================
-// وظائف مساعدة
-// ======================================
-
-function scrollToBottom() {
-    if (chatMessages) chatMessages.scrollTop = chatMessages.scrollHeight;
+// ============================================
+// Chat History
+// ============================================
+function updateChatHistory(message) {
+    if (!currentSessionId) {
+        currentSessionId = Date.now();
+        chatSessions.push({
+            id: currentSessionId,
+            title: message.substring(0, 30) + (message.length > 30 ? '...' : ''),
+            timestamp: new Date()
+        });
+    }
+    
+    renderChatHistory();
 }
 
-function getCurrentTime() {
-    return new Date().toLocaleTimeString('ar-SA', { 
-        hour: '2-digit', 
-        minute: '2-digit' 
+function renderChatHistory() {
+    if (!chatHistory) return;
+    
+    chatHistory.innerHTML = '';
+    
+    chatSessions.slice().reverse().forEach(session => {
+        const item = document.createElement('div');
+        item.className = 'chat-history-item';
+        if (session.id === currentSessionId) {
+            item.classList.add('active');
+        }
+        item.textContent = session.title;
+        item.onclick = () => loadChatSession(session.id);
+        chatHistory.appendChild(item);
     });
 }
 
-function updateStats() {
-    if (messageCount) messageCount.textContent = messageCounter;
-    if (imageCount) imageCount.textContent = imageCounter;
+function loadChatSession(sessionId) {
+    // Implementation for loading chat sessions
+    currentSessionId = sessionId;
+    renderChatHistory();
 }
 
-// ======================================
-// تهيئة التطبيق
-// ======================================
+function startNewChat() {
+    chatMessages.innerHTML = `
+        <div class="welcome-screen">
+            <div class="welcome-logo">
+                <div class="logo-gradient">
+                    <svg width="60" height="60" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/>
+                    </svg>
+                </div>
+            </div>
+            <h1 class="welcome-title">كيف يمكنني مساعدتك اليوم؟</h1>
+            
+            <div class="suggestion-cards">
+                <div class="suggestion-card" data-prompt="اشرح لي مفهوم الذكاء الاصطناعي">
+                    <div class="card-icon">🤖</div>
+                    <div class="card-title">اشرح مفهوم</div>
+                    <div class="card-text">الذكاء الاصطناعي</div>
+                </div>
+                <div class="suggestion-card" data-prompt="اكتب لي قصة قصيرة">
+                    <div class="card-icon">✍️</div>
+                    <div class="card-title">اكتب قصة</div>
+                    <div class="card-text">إبداعية قصيرة</div>
+                </div>
+                <div class="suggestion-card" data-prompt="ساعدني في تعلم البرمجة">
+                    <div class="card-icon">💻</div>
+                    <div class="card-title">تعلم البرمجة</div>
+                    <div class="card-text">من البداية</div>
+                </div>
+                <div class="suggestion-card" data-prompt="أفكار مشاريع برمجية">
+                    <div class="card-icon">💡</div>
+                    <div class="card-title">أفكار مشاريع</div>
+                    <div class="card-text">برمجية مبتكرة</div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    conversationHistory = [];
+    currentSessionId = null;
+    
+    // Re-attach suggestion card listeners
+    attachSuggestionListeners();
+}
 
+// ============================================
+// Helper Functions
+// ============================================
+function scrollToBottom() {
+    if (chatMessages) {
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+}
+
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function attachSuggestionListeners() {
+    document.querySelectorAll('.suggestion-card').forEach(card => {
+        card.addEventListener('click', () => {
+            const prompt = card.getAttribute('data-prompt');
+            messageInput.value = prompt;
+            sendMessage();
+        });
+    });
+}
+
+// ============================================
+// Initialization
+// ============================================
 document.addEventListener('DOMContentLoaded', () => {
+    // Get DOM elements
     chatMessages = document.getElementById('chatMessages');
     messageInput = document.getElementById('messageInput');
     sendBtn = document.getElementById('sendBtn');
+    attachBtn = document.getElementById('attachBtn');
     imageInput = document.getElementById('imageInput');
-    imageAnalyzeBtn = document.getElementById('imageAnalyzeBtn');
-    imageGenerateBtn = document.getElementById('imageGenerateBtn');
     imagePreview = document.getElementById('imagePreview');
     previewImg = document.getElementById('previewImg');
     removeImageBtn = document.getElementById('removeImage');
-    messageCount = document.getElementById('messageCount');
-    imageCount = document.getElementById('imageCount');
+    newChatBtn = document.getElementById('newChatBtn');
+    chatHistory = document.getElementById('chatHistory');
     
-    if (sendBtn) sendBtn.addEventListener('click', sendMessage);
+    // Event listeners
+    if (sendBtn) {
+        sendBtn.addEventListener('click', sendMessage);
+    }
     
     if (messageInput) {
         messageInput.addEventListener('keydown', (e) => {
@@ -448,35 +383,16 @@ document.addEventListener('DOMContentLoaded', () => {
         
         messageInput.addEventListener('input', function() {
             this.style.height = 'auto';
-            this.style.height = Math.min(this.scrollHeight, 150) + 'px';
+            this.style.height = Math.min(this.scrollHeight, 200) + 'px';
         });
         
         messageInput.focus();
     }
     
-    if (imageAnalyzeBtn) {
-        imageAnalyzeBtn.addEventListener('click', () => {
+    if (attachBtn) {
+        attachBtn.addEventListener('click', () => {
             if (imageInput) imageInput.click();
         });
-    }
-    
-    if (imageGenerateBtn) {
-        imageGenerateBtn.addEventListener('click', () => {
-            const prompt = messageInput ? messageInput.value.trim() : '';
-            if (!prompt) {
-                if (messageInput) {
-                    messageInput.placeholder = 'صف الصورة التي تريد إنشاءها...';
-                    messageInput.focus();
-                }
-                return;
-            }
-            generateImage(prompt);
-            if (messageInput) messageInput.value = '';
-        });
-    }
-    
-    if (removeImageBtn) {
-        removeImageBtn.addEventListener('click', clearImagePreview);
     }
     
     if (imageInput) {
@@ -503,30 +419,16 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
-    updateStats();
-    
-    console.log('🤖 دردشة الذكاء الاصطناعي جاهزة!');
-    console.log('📍 المزود الحالي:', AI_CONFIG.provider);
-    
-    const apiKey = getApiKey();
-    if (!apiKey) {
-        console.warn('⚠️ يرجى إضافة مفتاح API');
-    } else {
-        console.log('✅ مفتاح API موجود - الدردشة جاهزة!');
+    if (removeImageBtn) {
+        removeImageBtn.addEventListener('click', clearImagePreview);
     }
+    
+    if (newChatBtn) {
+        newChatBtn.addEventListener('click', startNewChat);
+    }
+    
+    // Attach suggestion card listeners
+    attachSuggestionListeners();
+    
+    console.log('✅ AI Chat جاهز - يعمل بدون API!');
 });
-
-window.addEventListener('error', (e) => console.error('خطأ عام:', e.error));
-window.addEventListener('unhandledrejection', (e) => console.error('Promise مرفوض:', e.reason));
-
-window.chatApp = {
-    sendMessage: () => sendMessage(),
-    clearChat: () => {
-        if (chatMessages) chatMessages.innerHTML = '';
-        conversationHistory = [];
-        messageCounter = 0;
-        imageCounter = 0;
-        updateStats();
-    },
-    getHistory: () => conversationHistory
-};

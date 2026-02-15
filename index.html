@@ -1,90 +1,103 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>الصفحة الرئيسية - موقعي</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>لمسة حقيبة | متجر حقائب نسائية</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-    
-    <!-- الهيدر -->
-    <header>
-        <div class="logo">🌐 موقعي</div>
-        <nav>
-            <a href="index.html">الرئيسية</a>
-            <a href="about.html">عن الموقع</a>
-            <a href="contact.html">تواصل</a>
-        </nav>
-    </header>
-    
-    <!-- Hero Section -->
-    <section class="hero">
-        <div class="hero-content">
-            <h1>مرحباً بك في موقعي على الدارك ويب</h1>
-            <p>موقع تجريبي احترافي للتعلم والاستكشاف</p>
-            <button class="btn" onclick="showAlert()">ابدأ الآن</button>
-        </div>
+  <header class="site-header">
+    <a class="logo" href="index.html">👜 لمسة حقيبة</a>
+    <nav>
+      <a href="index.html" class="active">الرئيسية</a>
+      <a href="about.html">من نحن</a>
+      <a href="contact.html">تواصل معنا</a>
+    </nav>
+    <button class="cart-btn" type="button">السلة <span id="cartCount">0</span></button>
+  </header>
+
+  <section class="hero">
+    <div class="hero-content">
+      <p class="badge">تشكيلة صيف 2026</p>
+      <h1>حقائب نسائية أنيقة لكل إطلالة</h1>
+      <p>اكتشفي أحدث الموديلات اليومية والرسمية بأسعار تناسبك وجودة تدوم.</p>
+      <a class="btn" href="#products">تسوّقي الآن</a>
+    </div>
+  </section>
+
+  <main>
+    <section class="container categories">
+      <h2>تسوقي حسب النوع</h2>
+      <div class="categories-grid">
+        <article>👜 حقائب كتف</article>
+        <article>✨ حقائب سهرة</article>
+        <article>💼 حقائب عمل</article>
+        <article>🎒 حقائب يومية</article>
+      </div>
     </section>
-    
-    <!-- المحتوى -->
-    <main class="container">
-        
-        <section class="features">
-            <h2>🌟 المميزات</h2>
-            <div class="features-grid">
-                
-                <div class="feature-card">
-                    <div class="icon">🔒</div>
-                    <h3>آمن ومشفر</h3>
-                    <p>جميع الاتصالات مشفرة بالكامل عبر شبكة Tor</p>
-                </div>
-                
-                <div class="feature-card">
-                    <div class="icon">⚡</div>
-                    <h3>سريع وخفيف</h3>
-                    <p>تصميم محسّن للأداء العالي</p>
-                </div>
-                
-                <div class="feature-card">
-                    <div class="icon">🎨</div>
-                    <h3>تصميم عصري</h3>
-                    <p>واجهة مستخدم جميلة وسهلة الاستخدام</p>
-                </div>
-                
-                <div class="feature-card">
-                    <div class="icon">📱</div>
-                    <h3>متجاوب</h3>
-                    <p>يعمل على جميع الأجهزة والشاشات</p>
-                </div>
-                
-            </div>
-        </section>
-        
-        <section class="stats">
-            <div class="stat-box">
-                <h3 id="counter1">0</h3>
-                <p>زائر</p>
-            </div>
-            <div class="stat-box">
-                <h3 id="counter2">0</h3>
-                <p>صفحة</p>
-            </div>
-            <div class="stat-box">
-                <h3 id="counter3">0</h3>
-                <p>مشروع</p>
-            </div>
-        </section>
-        
-    </main>
-    
-    <!-- الفوتر -->
-    <footer>
-        <p>© 2026 - موقعي التجريبي | جميع الحقوق محفوظة</p>
-        <p>تم الإنشاء للأغراض التعليمية فقط</p>
-    </footer>
-    
-    <script src="script.js"></script>
-    
+
+    <section id="products" class="container products">
+      <div class="section-head">
+        <h2>الأكثر مبيعاً</h2>
+        <p>اختيارات عميلاتنا المفضلة هذا الأسبوع</p>
+      </div>
+      <div class="products-grid">
+        <article class="product-card">
+          <div class="product-image">👜</div>
+          <h3>حقيبة كتف كلاسيك</h3>
+          <p>جلد صناعي فاخر - لون أسود</p>
+          <div class="product-footer">
+            <span>249 ر.س</span>
+            <button type="button" onclick="addToCart()">أضف للسلة</button>
+          </div>
+        </article>
+
+        <article class="product-card">
+          <div class="product-image">✨</div>
+          <h3>حقيبة سهرة لامعة</h3>
+          <p>تصميم أنيق للمناسبات</p>
+          <div class="product-footer">
+            <span>189 ر.س</span>
+            <button type="button" onclick="addToCart()">أضف للسلة</button>
+          </div>
+        </article>
+
+        <article class="product-card">
+          <div class="product-image">💼</div>
+          <h3>حقيبة عمل واسعة</h3>
+          <p>مساحة للابتوب والمستلزمات اليومية</p>
+          <div class="product-footer">
+            <span>299 ر.س</span>
+            <button type="button" onclick="addToCart()">أضف للسلة</button>
+          </div>
+        </article>
+
+        <article class="product-card">
+          <div class="product-image">🎒</div>
+          <h3>حقيبة يومية مريحة</h3>
+          <p>خفيفة وعملية للتنقل</p>
+          <div class="product-footer">
+            <span>159 ر.س</span>
+            <button type="button" onclick="addToCart()">أضف للسلة</button>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="container newsletter">
+      <h2>اشتركي لتحصلي على خصم 10٪</h2>
+      <form onsubmit="subscribe(event)">
+        <input type="email" id="newsletterEmail" placeholder="أدخلي بريدك الإلكتروني" required />
+        <button class="btn" type="submit">اشتركي الآن</button>
+      </form>
+    </section>
+  </main>
+
+  <footer>
+    <p>© 2026 لمسة حقيبة - جميع الحقوق محفوظة</p>
+  </footer>
+
+  <script src="script.js"></script>
 </body>
 </html>

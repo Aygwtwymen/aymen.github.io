@@ -195,6 +195,7 @@ body {
 .chat-messages {
     flex: 1;
     overflow-y: auto;
+    overflow-x: hidden;
     padding: 24px;
     scroll-behavior: smooth;
     display: flex;
@@ -202,16 +203,25 @@ body {
 }
 
 .chat-messages::-webkit-scrollbar {
-    width: 8px;
+    width: 12px;
 }
 
 .chat-messages::-webkit-scrollbar-track {
-    background: transparent;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 6px;
+    margin: 4px;
 }
 
 .chat-messages::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 6px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+}
+
+.chat-messages::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
+    background-clip: padding-box;
 }
 
 /* ============================================

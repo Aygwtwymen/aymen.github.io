@@ -137,24 +137,25 @@ async function sendMessage() {
         return;
     }
     
-    // Hide welcome screen
+    // Hide welcome screen BEFORE adding messages
     const welcomeScreen = document.querySelector('.welcome-screen');
     if (welcomeScreen) {
-        welcomeScreen.style.display = 'none';
+        welcomeScreen.remove();
     }
     
-    // Add user message
-    if (message || currentImage) {
-        addMessage('user', message, currentImage);
-        conversationHistory.push({ role: 'user', content: message });
-    }
+    // Clear input first
+    const userMessage = message;
+    const imageToAnalyze = currentImage;
     
-    // Clear input
     messageInput.value = '';
     messageInput.style.height = 'auto';
-    
-    const imageToAnalyze = currentImage;
     clearImagePreview();
+    
+    // Add user message
+    if (userMessage || imageToAnalyze) {
+        addMessage('user', userMessage, imageToAnalyze);
+        conversationHistory.push({ role: 'user', content: userMessage });
+    }
     
     // Show typing indicator
     showTypingIndicator();
@@ -167,7 +168,7 @@ async function sendMessage() {
     if (imageToAnalyze) {
         aiResponse = analyzeImage();
     } else {
-        aiResponse = generateAIResponse(message);
+        aiResponse = generateAIResponse(userMessage);
     }
     
     removeTypingIndicator();
@@ -175,7 +176,7 @@ async function sendMessage() {
     conversationHistory.push({ role: 'ai', content: aiResponse });
     
     // Update chat history
-    updateChatHistory(message);
+    updateChatHistory(userMessage);
 }
 
 function addMessage(sender, text, image = null) {
@@ -201,7 +202,11 @@ function addMessage(sender, text, image = null) {
     
     messageDiv.appendChild(contentDiv);
     chatMessages.appendChild(messageDiv);
-    scrollToBottom();
+    
+    // Scroll after DOM update
+    requestAnimationFrame(() => {
+        scrollToBottom();
+    });
 }
 
 function showTypingIndicator() {
@@ -334,7 +339,9 @@ function startNewChat() {
 // ============================================
 function scrollToBottom() {
     if (chatMessages) {
-        chatMessages.scrollTop = chatMessages.scrollHeight;
+        setTimeout(() => {
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }, 100);
     }
 }
 

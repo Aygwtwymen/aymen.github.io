@@ -3,97 +3,133 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تواصل معنا</title>
+    <title>تواصل معنا - دردشة الذكاء الاصطناعي</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    
-    <header>
-        <div class="logo">🌐 موقعي</div>
-        <nav>
-            <a href="index.html">الرئيسية</a>
-            <a href="about.html">عن الموقع</a>
-            <a href="contact.html">تواصل</a>
-        </nav>
-    </header>
-    
-    <main class="container">
-        <div class="page-header">
-            <h1>📬 تواصل معنا</h1>
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-content">
+                <h1 class="logo">🤖 دردشة AI</h1>
+                <div class="nav-links">
+                    <a href="index.html">الرئيسية</a>
+                    <a href="about.html">حول</a>
+                    <a href="contact.html" class="active">تواصل</a>
+                </div>
+            </div>
         </div>
-        
-        <div class="contact-grid">
-            
-            <div class="contact-form">
-                <h2>أرسل لنا رسالة</h2>
-                <form onsubmit="sendMessage(event)">
+    </nav>
+
+    <div class="page-header">
+        <div class="container">
+            <h2>تواصل معنا</h2>
+            <p>نحن هنا لمساعدتك والإجابة على استفساراتك</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="contact-layout">
+            <div class="contact-form-section">
+                <h3>أرسل لنا رسالة</h3>
+                <form id="contactForm" class="contact-form">
                     <div class="form-group">
-                        <label>الاسم:</label>
-                        <input type="text" id="name" required>
+                        <label for="name">الاسم</label>
+                        <input type="text" id="name" name="name" required placeholder="أدخل اسمك">
                     </div>
-                    
+
                     <div class="form-group">
-                        <label>البريد الإلكتروني:</label>
-                        <input type="email" id="email" required>
+                        <label for="email">البريد الإلكتروني</label>
+                        <input type="email" id="email" name="email" required placeholder="your@email.com">
                     </div>
-                    
+
                     <div class="form-group">
-                        <label>الرسالة:</label>
-                        <textarea id="message" rows="5" required></textarea>
+                        <label for="subject">الموضوع</label>
+                        <select id="subject" name="subject" required>
+                            <option value="">اختر الموضوع</option>
+                            <option value="support">الدعم الفني</option>
+                            <option value="feedback">ملاحظات واقتراحات</option>
+                            <option value="business">استفسار تجاري</option>
+                            <option value="other">أخرى</option>
+                        </select>
                     </div>
-                    
-                    <button type="submit" class="btn">إرسال</button>
+
+                    <div class="form-group">
+                        <label for="message">الرسالة</label>
+                        <textarea id="message" name="message" rows="6" required placeholder="اكتب رسالتك هنا..."></textarea>
+                    </div>
+
+                    <button type="submit" class="submit-btn">
+                        <span>إرسال الرسالة</span>
+                        <span class="arrow">➤</span>
+                    </button>
                 </form>
+
+                <div id="formMessage" class="form-message" style="display: none;"></div>
             </div>
-            
-            <div class="contact-info">
-                <h2>معلومات الاتصال</h2>
-                
-                <div class="info-item">
+
+            <div class="contact-info-section">
+                <div class="info-card">
                     <div class="info-icon">📧</div>
-                    <div>
-                        <h3>البريد الإلكتروني</h3>
-                        <p>example@onion.site</p>
-                    </div>
+                    <h4>البريد الإلكتروني</h4>
+                    <p>support@ai-chat.com</p>
                 </div>
-                
-                <div class="info-item">
+
+                <div class="info-card">
+                    <div class="info-icon">💬</div>
+                    <h4>الدردشة المباشرة</h4>
+                    <p>متاح 24/7 على الصفحة الرئيسية</p>
+                </div>
+
+                <div class="info-card">
                     <div class="info-icon">🌐</div>
-                    <div>
-                        <h3>الموقع</h3>
-                        <p>موقع تجريبي على Tor</p>
+                    <h4>وسائل التواصل</h4>
+                    <div class="social-links">
+                        <a href="#" class="social-btn">Twitter</a>
+                        <a href="#" class="social-btn">GitHub</a>
+                        <a href="#" class="social-btn">LinkedIn</a>
                     </div>
                 </div>
-                
-                <div class="info-item">
-                    <div class="info-icon">⏰</div>
-                    <div>
-                        <h3>أوقات العمل</h3>
-                        <p>24/7 - متاح دائماً</p>
+
+                <div class="info-card faq-card">
+                    <h4>الأسئلة الشائعة</h4>
+                    <div class="faq-item">
+                        <strong>كيف أستخدم المنصة؟</strong>
+                        <p>ببساطة ابدأ الدردشة من الصفحة الرئيسية!</p>
+                    </div>
+                    <div class="faq-item">
+                        <strong>هل الخدمة مجانية؟</strong>
+                        <p>نعم، يمكنك تجربة جميع الميزات مجاناً.</p>
+                    </div>
+                    <div class="faq-item">
+                        <strong>هل البيانات آمنة؟</strong>
+                        <p>نعم، نحمي خصوصيتك بأعلى معايير الأمان.</p>
                     </div>
                 </div>
-                
-                <div class="social-links">
-                    <h3>تابعنا</h3>
-                    <div class="social-icons">
-                        <a href="#" class="social-icon">📘</a>
-                        <a href="#" class="social-icon">🐦</a>
-                        <a href="#" class="social-icon">📷</a>
-                        <a href="#" class="social-icon">💼</a>
-                    </div>
-                </div>
-                
             </div>
-            
         </div>
-        
-    </main>
-    
-    <footer>
-        <p>© 2026 - موقعي التجريبي | جميع الحقوق محفوظة</p>
+    </div>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2026 دردشة الذكاء الاصطناعي. جميع الحقوق محفوظة.</p>
+        </div>
     </footer>
-    
-    <script src="script.js"></script>
-    
+
+    <script>
+        document.getElementById('contactForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formMessage = document.getElementById('formMessage');
+            formMessage.style.display = 'block';
+            formMessage.className = 'form-message success';
+            formMessage.textContent = '✓ تم إرسال رسالتك بنجاح! سنتواصل معك قريباً.';
+            
+            this.reset();
+            
+            setTimeout(() => {
+                formMessage.style.display = 'none';
+            }, 5000);
+        });
+    </script>
 </body>
 </html>

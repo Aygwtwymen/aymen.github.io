@@ -3,88 +3,134 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>الصفحة الرئيسية - موقعي</title>
+    <title>دردشة الذكاء الاصطناعي</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    
-    <!-- الهيدر -->
-    <header>
-        <div class="logo">🌐 موقعي</div>
-        <nav>
-            <a href="index.html">الرئيسية</a>
-            <a href="about.html">عن الموقع</a>
-            <a href="contact.html">تواصل</a>
-        </nav>
-    </header>
-    
-    <!-- Hero Section -->
-    <section class="hero">
-        <div class="hero-content">
-            <h1>مرحباً بك في موقعي على الدارك ويب</h1>
-            <p>موقع تجريبي احترافي للتعلم والاستكشاف</p>
-            <button class="btn" onclick="showAlert()">ابدأ الآن</button>
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-content">
+                <h1 class="logo">🤖 دردشة AI</h1>
+                <div class="nav-links">
+                    <a href="index.html" class="active">الرئيسية</a>
+                    <a href="about.html">حول</a>
+                    <a href="contact.html">تواصل</a>
+                </div>
+            </div>
         </div>
-    </section>
-    
-    <!-- المحتوى -->
-    <main class="container">
-        
-        <section class="features">
-            <h2>🌟 المميزات</h2>
-            <div class="features-grid">
-                
-                <div class="feature-card">
-                    <div class="icon">🔒</div>
-                    <h3>آمن ومشفر</h3>
-                    <p>جميع الاتصالات مشفرة بالكامل عبر شبكة Tor</p>
+    </nav>
+
+    <div class="hero-section">
+        <div class="container">
+            <h2 class="hero-title">تحدث مع الذكاء الاصطناعي المتقدم</h2>
+            <p class="hero-description">دردشة ذكية • تحليل الصور • إنشاء صور بالذكاء الاصطناعي</p>
+        </div>
+    </div>
+
+    <div class="container main-content">
+        <div class="chat-container">
+            <!-- منطقة الرسائل -->
+            <div id="chatMessages" class="chat-messages">
+                <div class="welcome-message">
+                    <div class="ai-avatar">🤖</div>
+                    <div>
+                        <h3>مرحباً بك!</h3>
+                        <p>أنا مساعد ذكاء اصطناعي متقدم. يمكنني:</p>
+                        <ul>
+                            <li>💬 الدردشة والإجابة على أسئلتك</li>
+                            <li>🖼️ تحليل وفهم الصور</li>
+                            <li>🎨 إنشاء صور فنية من وصفك</li>
+                        </ul>
+                        <p>كيف يمكنني مساعدتك اليوم؟</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- منطقة الإدخال -->
+            <div class="chat-input-container">
+                <div class="input-actions">
+                    <button id="imageAnalyzeBtn" class="action-btn" title="تحليل صورة">
+                        📷
+                    </button>
+                    <button id="imageGenerateBtn" class="action-btn" title="إنشاء صورة">
+                        🎨
+                    </button>
+                    <input type="file" id="imageInput" accept="image/*" style="display: none;">
                 </div>
                 
-                <div class="feature-card">
-                    <div class="icon">⚡</div>
-                    <h3>سريع وخفيف</h3>
-                    <p>تصميم محسّن للأداء العالي</p>
+                <div class="input-wrapper">
+                    <textarea 
+                        id="messageInput" 
+                        placeholder="اكتب رسالتك هنا..." 
+                        rows="1"
+                    ></textarea>
+                    <button id="sendBtn" class="send-btn">
+                        <span>إرسال</span>
+                        <span class="arrow">➤</span>
+                    </button>
                 </div>
-                
-                <div class="feature-card">
-                    <div class="icon">🎨</div>
-                    <h3>تصميم عصري</h3>
-                    <p>واجهة مستخدم جميلة وسهلة الاستخدام</p>
+
+                <div id="imagePreview" class="image-preview" style="display: none;">
+                    <img id="previewImg" src="" alt="معاينة">
+                    <button id="removeImage" class="remove-btn">✕</button>
                 </div>
-                
-                <div class="feature-card">
-                    <div class="icon">📱</div>
-                    <h3>متجاوب</h3>
-                    <p>يعمل على جميع الأجهزة والشاشات</p>
+            </div>
+        </div>
+
+        <!-- الشريط الجانبي -->
+        <div class="sidebar">
+            <div class="feature-card">
+                <div class="feature-icon">💡</div>
+                <h3>نصائح الاستخدام</h3>
+                <ul class="tips-list">
+                    <li>اطرح أي سؤال تريده</li>
+                    <li>ارفع صورة لتحليلها</li>
+                    <li>اطلب إنشاء صورة بالوصف</li>
+                </ul>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">⚡</div>
+                <h3>الميزات</h3>
+                <div class="feature-list">
+                    <div class="feature-item">
+                        <span>✓</span>
+                        <span>دردشة ذكية</span>
+                    </div>
+                    <div class="feature-item">
+                        <span>✓</span>
+                        <span>تحليل الصور</span>
+                    </div>
+                    <div class="feature-item">
+                        <span>✓</span>
+                        <span>إنشاء الصور</span>
+                    </div>
+                    <div class="feature-item">
+                        <span>✓</span>
+                        <span>ردود سريعة</span>
+                    </div>
                 </div>
-                
             </div>
-        </section>
-        
-        <section class="stats">
-            <div class="stat-box">
-                <h3 id="counter1">0</h3>
-                <p>زائر</p>
+
+            <div class="stats-card">
+                <div class="stat">
+                    <span class="stat-number" id="messageCount">0</span>
+                    <span class="stat-label">رسائل</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-number" id="imageCount">0</span>
+                    <span class="stat-label">صور</span>
+                </div>
             </div>
-            <div class="stat-box">
-                <h3 id="counter2">0</h3>
-                <p>صفحة</p>
-            </div>
-            <div class="stat-box">
-                <h3 id="counter3">0</h3>
-                <p>مشروع</p>
-            </div>
-        </section>
-        
-    </main>
-    
-    <!-- الفوتر -->
-    <footer>
-        <p>© 2026 - موقعي التجريبي | جميع الحقوق محفوظة</p>
-        <p>تم الإنشاء للأغراض التعليمية فقط</p>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2026 دردشة الذكاء الاصطناعي. جميع الحقوق محفوظة.</p>
+        </div>
     </footer>
-    
+
     <script src="script.js"></script>
-    
 </body>
 </html>

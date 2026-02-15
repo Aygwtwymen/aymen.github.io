@@ -9,22 +9,6 @@ const AI_CONFIG = {
 };
 
 // ======================================
-// عناصر DOM
-// ======================================
-
-const chatMessages = document.getElementById('chatMessages');
-const messageInput = document.getElementById('messageInput');
-const sendBtn = document.getElementById('sendBtn');
-const imageInput = document.getElementById('imageInput');
-const imageAnalyzeBtn = document.getElementById('imageAnalyzeBtn');
-const imageGenerateBtn = document.getElementById('imageGenerateBtn');
-const imagePreview = document.getElementById('imagePreview');
-const previewImg = document.getElementById('previewImg');
-const removeImageBtn = document.getElementById('removeImage');
-const messageCount = document.getElementById('messageCount');
-const imageCount = document.getElementById('imageCount');
-
-// ======================================
 // المتغيرات العامة
 // ======================================
 
@@ -32,6 +16,22 @@ let conversationHistory = [];
 let currentImage = null;
 let messageCounter = 0;
 let imageCounter = 0;
+
+// ======================================
+// عناصر DOM
+// ======================================
+
+let chatMessages;
+let messageInput;
+let sendBtn;
+let imageInput;
+let imageAnalyzeBtn;
+let imageGenerateBtn;
+let imagePreview;
+let previewImg;
+let removeImageBtn;
+let messageCount;
+let imageCount;
 
 // ======================================
 // وظائف الإرسال والاستقبال
@@ -160,9 +160,6 @@ async function generateImage(prompt) {
     showTypingIndicator();
     
     try {
-        // هنا يمكنك إضافة API لتوليد الصور
-        // مثل DALL-E أو Stable Diffusion
-        
         removeTypingIndicator();
         
         // رسالة توضيحية
@@ -256,33 +253,6 @@ function removeTypingIndicator() {
 // وظائف إدارة الصور
 // ======================================
 
-// معالجة اختيار الصورة
-imageInput.addEventListener('change', async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    
-    if (!file.type.startsWith('image/')) {
-        alert('يرجى اختيار ملف صورة صالح');
-        return;
-    }
-    
-    try {
-        const base64 = await fileToBase64(file);
-        currentImage = {
-            type: file.type,
-            data: base64
-        };
-        
-        // عرض المعاينة
-        previewImg.src = `data:${file.type};base64,${base64}`;
-        imagePreview.style.display = 'block';
-        
-    } catch (error) {
-        console.error('خطأ في قراءة الصورة:', error);
-        alert('حدث خطأ في قراءة الصورة');
-    }
-});
-
 // تحويل الملف لـ base64
 function fileToBase64(file) {
     return new Promise((resolve, reject) => {
@@ -299,52 +269,10 @@ function fileToBase64(file) {
 // مسح معاينة الصورة
 function clearImagePreview() {
     currentImage = null;
-    imagePreview.style.display = 'none';
-    previewImg.src = '';
-    imageInput.value = '';
+    if (imagePreview) imagePreview.style.display = 'none';
+    if (previewImg) previewImg.src = '';
+    if (imageInput) imageInput.value = '';
 }
-
-// ======================================
-// معالجات الأحداث
-// ======================================
-
-// زر الإرسال
-sendBtn.addEventListener('click', sendMessage);
-
-// Enter للإرسال (Shift+Enter للسطر جديد)
-messageInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        sendMessage();
-    }
-});
-
-// تعديل حجم textarea تلقائياً
-messageInput.addEventListener('input', function() {
-    this.style.height = 'auto';
-    this.style.height = Math.min(this.scrollHeight, 150) + 'px';
-});
-
-// زر تحليل الصورة
-imageAnalyzeBtn.addEventListener('click', () => {
-    imageInput.click();
-});
-
-// زر إنشاء الصورة
-imageGenerateBtn.addEventListener('click', () => {
-    const prompt = messageInput.value.trim();
-    if (!prompt) {
-        messageInput.placeholder = 'صف الصورة التي تريد إنشاءها...';
-        messageInput.focus();
-        return;
-    }
-    
-    generateImage(prompt);
-    messageInput.value = '';
-});
-
-// زر إزالة الصورة
-removeImageBtn.addEventListener('click', clearImagePreview);
 
 // ======================================
 // وظائف مساعدة
@@ -352,7 +280,9 @@ removeImageBtn.addEventListener('click', clearImagePreview);
 
 // التمرير لأسفل المحادثة
 function scrollToBottom() {
-    chatMessages.scrollTop = chatMessages.scrollHeight;
+    if (chatMessages) {
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
 }
 
 // الحصول على الوقت الحالي
@@ -379,8 +309,93 @@ function updateStats() {
 // ======================================
 
 document.addEventListener('DOMContentLoaded', () => {
-    // التركيز على حقل الإدخال
-    messageInput.focus();
+    // تهيئة عناصر DOM
+    chatMessages = document.getElementById('chatMessages');
+    messageInput = document.getElementById('messageInput');
+    sendBtn = document.getElementById('sendBtn');
+    imageInput = document.getElementById('imageInput');
+    imageAnalyzeBtn = document.getElementById('imageAnalyzeBtn');
+    imageGenerateBtn = document.getElementById('imageGenerateBtn');
+    imagePreview = document.getElementById('imagePreview');
+    previewImg = document.getElementById('previewImg');
+    removeImageBtn = document.getElementById('removeImage');
+    messageCount = document.getElementById('messageCount');
+    imageCount = document.getElementById('imageCount');
+    
+    // إضافة معالجات الأحداث
+    if (sendBtn) {
+        sendBtn.addEventListener('click', sendMessage);
+    }
+    
+    if (messageInput) {
+        // Enter للإرسال
+        messageInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+        
+        // تعديل حجم textarea تلقائياً
+        messageInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 150) + 'px';
+        });
+        
+        messageInput.focus();
+    }
+    
+    if (imageAnalyzeBtn) {
+        imageAnalyzeBtn.addEventListener('click', () => {
+            if (imageInput) imageInput.click();
+        });
+    }
+    
+    if (imageGenerateBtn) {
+        imageGenerateBtn.addEventListener('click', () => {
+            const prompt = messageInput ? messageInput.value.trim() : '';
+            if (!prompt) {
+                if (messageInput) {
+                    messageInput.placeholder = 'صف الصورة التي تريد إنشاءها...';
+                    messageInput.focus();
+                }
+                return;
+            }
+            generateImage(prompt);
+            if (messageInput) messageInput.value = '';
+        });
+    }
+    
+    if (removeImageBtn) {
+        removeImageBtn.addEventListener('click', clearImagePreview);
+    }
+    
+    if (imageInput) {
+        imageInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            if (!file.type.startsWith('image/')) {
+                alert('يرجى اختيار ملف صورة صالح');
+                return;
+            }
+            
+            try {
+                const base64 = await fileToBase64(file);
+                currentImage = {
+                    type: file.type,
+                    data: base64
+                };
+                
+                if (previewImg) previewImg.src = `data:${file.type};base64,${base64}`;
+                if (imagePreview) imagePreview.style.display = 'block';
+                
+            } catch (error) {
+                console.error('خطأ في قراءة الصورة:', error);
+                alert('حدث خطأ في قراءة الصورة');
+            }
+        });
+    }
     
     // تحديث الإحصائيات
     updateStats();
@@ -406,9 +421,9 @@ window.addEventListener('unhandledrejection', (e) => {
 // ======================================
 
 window.chatApp = {
-    sendMessage,
+    sendMessage: () => sendMessage(),
     clearChat: () => {
-        chatMessages.innerHTML = '';
+        if (chatMessages) chatMessages.innerHTML = '';
         conversationHistory = [];
         messageCounter = 0;
         imageCounter = 0;
